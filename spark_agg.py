@@ -24,9 +24,8 @@ findspark.init()
 
 
 import pickle
-from pyspark.sql import Row, SparkSession, HiveContext
+from pyspark.sql import Row, Window
 from pyspark.sql import functions as F
-
 from pyspark.sql.types import ArrayType, StringType, IntegerType, FloatType
 
 
@@ -154,7 +153,7 @@ test5=test4.withColumn('ccsDiagFlat',flattenudf(F.col('ccsDiag')))    .withColum
 # In[35]:
 
 
-test5.take(10)
+test5.show(10)
 
 
 # In[36]:
@@ -166,7 +165,7 @@ wndw2 = Window.partitionBy(['MemberSK','GroupID']).orderBy('src')
 # In[37]:
 
 
-test6=test5.withColumn('rn',F.row_number().over(wndw2)).filter('rn=1').drop('rn')
+test6=test5.withColumn('rn',F.row_number().over(wndw2)).filter('rn=1').drop('rn').cache()
 
 
 # In[38]:
@@ -178,14 +177,13 @@ test6.show()
 # In[62]:
 
 
-test6.withColumn('DaystoIndex',F.datediff(F.from_unixtime(F.unix_timestamp(F.col('indexDT').cast(StringType()),'yyyymmdd')),
-                                          F.from_unixtime(F.unix_timestamp(F.col('StartDT').cast(StringType()),'yyyymmdd'))                                          
+test7=test6.withColumn('DaystoIndex',F.datediff(F.from_unixtime(F.unix_timestamp(F.col('indexDT').cast(StringType()),'yyyyMMdd')),
+                                          F.from_unixtime(F.unix_timestamp(F.col('StartDT').cast(StringType()),'yyyyMMdd'))
                                          )
-                ).show()
+                )
 
 
-# In[61]:
 
 
-test6.withColumn('DaystoIndex',F.from_unixtime(F.unix_timestamp(F.col('indexDT').cast(StringType()),'yyyymmdd'))).show()
+test7.orderBy(F.col('MemberSK'),F.col('DaystoIndex').desc()).show()
 
