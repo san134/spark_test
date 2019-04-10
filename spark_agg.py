@@ -187,3 +187,17 @@ test7=test6.withColumn('DaystoIndex',F.datediff(F.from_unixtime(F.unix_timestamp
 
 test7.orderBy(F.col('MemberSK'),F.col('DaystoIndex').desc()).show()
 
+acutes=['700','890','878']
+chronics=['470','689']
+
+@F.udf('array(int)')
+def acute_cond(condlist):
+    return(list(max([1 if d in acutes else 0 for d in condlist]),max([1 if d in chronics else 0 for d in condlist])))
+
+@F.udf('int')
+def acute_cond(condlist):
+    return(max([1 if d in acutes else 0 for d in condlist]))
+
+
+test7.withColumn('acute',acute_cond(F.col('ccsDiagFlat'))).show()
+
