@@ -199,5 +199,10 @@ def acute_cond(condlist):
     return(max([1 if d in acutes else 0 for d in condlist]))
 
 
-test7.withColumn('acute',acute_cond(F.col('ccsDiagFlat'))).show()
+test8=test7.withColumn('acute',acute_cond(F.col('ccsDiagFlat')))
+
+window3=Window.partitionBy('MemberSK').orderBy([F.col('acute').desc(),F.col('DaystoIndex')])
+
+test9=test8.withColumn('FirstAcute',F.when(F.first(F.col('acute')).over(window3)==1,F.first(F.col('DaystoIndex')).over(window3)).otherwise(None)).cache()
+
 
